@@ -7,10 +7,27 @@
 * INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 * See LICENSE in the root of the software repository for the full text of the License.
 */
-#include <gtest/gtest.h>
 
-int32_t main(int32_t argc, char** argv)
+#include "dlhcomm_function.h"
+
+namespace mc2_ops_hccl {
+DlHcommFunction &DlHcommFunction::GetInstance()
 {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+    static DlHcommFunction hcclDlHcommFunction;
+    (void)hcclDlHcommFunction.DlHcommFunctionInit();
+    return hcclDlHcommFunction;
 }
+
+DlHcommFunction::~DlHcommFunction() = default;
+
+HcclResult DlHcommFunction::DlHcommFunctionInterInit()
+{
+    dlHcclThreadResGetInfo = nullptr;
+    return HCCL_SUCCESS;
+}
+
+HcclResult DlHcommFunction::DlHcommFunctionInit()
+{
+    return DlHcommFunctionInterInit();
+}
+} // namespace mc2_ops_hccl
