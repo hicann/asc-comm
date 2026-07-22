@@ -1,4 +1,4 @@
-# -----------------------------------------------------------------------------------------------------------
+ # -----------------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 Huawei Technologies Co., Ltd.
 # This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
@@ -8,17 +8,10 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # -----------------------------------------------------------------------------------------------------------
 
-set(src_list
-    ccu_primitives_impl.cc
-    ccu_launch.cc
-    ccu_host_launch.cc
+set(op_kernel_ccu_src_list
+    ${CMAKE_CURRENT_SOURCE_DIR}/ccu_kernel.cc
 )
 
-if(TARGET asccomm_hcomm_obj)
-    target_sources(asccomm_hcomm_obj PRIVATE
-        ${src_list}
-    )
-    target_include_directories(asccomm_hcomm_obj PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-endif()
+target_sources(hccl_custom_allgather PRIVATE
+    ${op_kernel_ccu_src_list}
+)
