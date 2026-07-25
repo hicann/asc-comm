@@ -245,8 +245,6 @@ CcuResult CcuAllGatherMesh1DMem2MemKernel(CcuKernelArg arg)
 
     // 2.加载参数
     uint32_t argId = 0;
-    CCU_CHK_RET(ccu::LoadArg(ctx.input, argId++));
-    CCU_CHK_RET(ccu::LoadArg(ctx.output[ctx.arg->rankId], argId++));
     CCU_CHK_RET(ccu::LoadArg(ctx.token[ctx.arg->rankId], argId++));
     CCU_CHK_RET(ccu::LoadArg(ctx.currentRankSliceInputOffset, argId++));
     CCU_CHK_RET(ccu::LoadArg(ctx.currentRankSliceOutputOffset, argId++));
@@ -255,6 +253,13 @@ CcuResult CcuAllGatherMesh1DMem2MemKernel(CcuKernelArg arg)
     CCU_CHK_RET(ccu::LoadArg(ctx.goSize.loopParam, argId++));
     CCU_CHK_RET(ccu::LoadArg(ctx.goSize.parallelParam, argId++));
     CCU_CHK_RET(ccu::LoadArg(ctx.goSize.residual, argId++));
+
+    ccu::Array<ccu::Event> events(ctx.arg->eventHandle, ctx.arg->eventNum);
+    ccu::EventWait(events[0]);
+
+    ccu::Array<ccu::Variable> vars(ctx.arg->varHandle, ctx.arg->varNum);
+    ctx.input = vars[0];
+    ctx.output[ctx.arg->rankId] = vars[1];
 
     // 3.前同步
     for (uint32_t i = 0; i < ctx.arg->channelCount; i++) {
@@ -279,6 +284,7 @@ CcuResult CcuAllGatherMesh1DMem2MemKernel(CcuKernelArg arg)
     for (uint32_t i = 0; i < ctx.arg->channelCount; i++) {
         CCU_CHK_RET(ccu::NotifyWait(ctx.arg->channels[i], CKE_IDX_0, 1 << POST_SYNC_ID)); // 等待远端卡数据搬运完成
     }
+    ccu::EventRecord(events[1]);
 
     return CcuResult::CCU_SUCCESS;
 }
