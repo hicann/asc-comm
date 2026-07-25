@@ -9,7 +9,7 @@
 # -----------------------------------------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 3.16.0)
-project(asccomm_examples_custom_ccu_reduce_scatter)
+project(asccomm_examples_custom_ccu_broadcast)
 
 if(NOT ASCEND_HOME_PATH)
     set(ASCEND_HOME_PATH $ENV{ASCEND_HOME_PATH})
@@ -19,11 +19,11 @@ if(NOT ASCEND_HOME_PATH)
     message(FATAL_ERROR "ASCEND_HOME_PATH is not set, please source CANN set_env.sh or pass -DASCEND_HOME_PATH=...")
 endif()
 
-add_executable(custom_reduce_scatter_ccu
+add_executable(custom_broadcast_ccu
     main.cc
 )
 
-target_include_directories(custom_reduce_scatter_ccu PRIVATE
+target_include_directories(custom_broadcast_ccu PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/op_host
     ${CMAKE_CURRENT_SOURCE_DIR}/op_kernel_ccu
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include
@@ -40,7 +40,7 @@ target_include_directories(custom_reduce_scatter_ccu PRIVATE
     ${ASCEND_HOME_PATH}/pkg_inc/hcomm
 )
 
-target_compile_options(custom_reduce_scatter_ccu PRIVATE
+target_compile_options(custom_broadcast_ccu PRIVATE
     -U_FORTIFY_SOURCE
     -Werror
     -fno-common
@@ -50,22 +50,22 @@ target_compile_options(custom_reduce_scatter_ccu PRIVATE
     -std=c++14
     -fstack-protector-all
 )
-target_compile_definitions(custom_reduce_scatter_ccu PRIVATE
+target_compile_definitions(custom_broadcast_ccu PRIVATE
     _GLIBCXX_USE_CXX11_ABI=0
     HOST_COMPILE
 )
 
-target_link_options(custom_reduce_scatter_ccu PRIVATE
+target_link_options(custom_broadcast_ccu PRIVATE
     -Wl,-z,relro
     -Wl,-z,now
     -Wl,-z,noexecstack
     -Wl,--copy-dt-needed-entries
     -Wl,-rpath,${ASCEND_HOME_PATH}/lib64
 )
-target_link_directories(custom_reduce_scatter_ccu PRIVATE
+target_link_directories(custom_broadcast_ccu PRIVATE
     ${ASCEND_HOME_PATH}/lib64
 )
-target_link_libraries(custom_reduce_scatter_ccu PRIVATE
+target_link_libraries(custom_broadcast_ccu PRIVATE
     hcomm
     asccomm_ccu_dataplane
     ascendcl
