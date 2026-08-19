@@ -8,15 +8,25 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------------------------------------
 
-set(HCOMM_UT_INCLUDE_DIRS
+# ain.h uses CANN installed-package relative includes:
+#   ../hcomm/hcomm.h                             -> asc/include/comm_api/aicore/hcomm/hcomm.h
+#   ../../../../impl/comm_api/aicore/ain/impl/*.h -> asc/impl/comm_api/aicore/ain/impl/*.h
+# hcomm.h uses:
+#   ../../../impl/adv_api/detail/hcomm/impl/*.h  -> asc/impl/adv_api/detail/hcomm/impl/*.h
+# ain_impl_def.h uses:
+#   ../../hcomm/impl/hcomm_impl_def.h            -> asc/impl/comm_api/aicore/hcomm/impl/hcomm_impl_def.h
+#   hcomm/hcomm_team_entity_defs.h               -> CANN pkg_inc/hcomm (sibling of the asc dir)
+set(AIN_UT_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${ASCCOMM_UT_ROOT}/common
     ${ASCCOMM_UT_STAGE_INCLUDE_DIR}
     ${ASCCOMM_TIKICPU_INCLUDE_DIR}
     ${ASCCOMM_CANN_INCLUDE_DIRS}
+    ${ASCEND_CANN_PACKAGE_PATH}/pkg_inc
+    ${ASCEND_CANN_ARCH_DIR}/include/hcomm
 )
 
-function(add_hcomm_ut target_name product_type tikicpu_product_dir)
+function(add_ain_ut target_name product_type tikicpu_product_dir)
     add_executable(${target_name}
         ${ASCCOMM_UT_ROOT}/main_global.cpp
         ${ASCCOMM_UT_ROOT}/common/k3_pvwrap.cpp
@@ -26,7 +36,7 @@ function(add_hcomm_ut target_name product_type tikicpu_product_dir)
 
     asccomm_add_product_definitions(${target_name} ${product_type})
     target_compile_definitions(${target_name} PRIVATE ASCENDC_CPU_DEBUG=1)
-    target_include_directories(${target_name} PRIVATE ${HCOMM_UT_INCLUDE_DIRS})
+    target_include_directories(${target_name} PRIVATE ${AIN_UT_INCLUDE_DIRS})
     target_compile_options(${target_name} PRIVATE
         -fno-access-control
         -Werror
@@ -68,34 +78,24 @@ function(add_hcomm_ut target_name product_type tikicpu_product_dir)
         target_link_libraries(${target_name} PRIVATE tikicpulib::${product_type})
     endif()
 
-    if(target_name MATCHES "ascend910B1_AIC")
+    if(target_name MATCHES "ain")
         set(test_filters
-            HcommCommonTestSuite.Aiv_Read
-            HcommCommonTestSuite.Aiv_Write
-            HcommCommonTestSuite.Aiv_WriteWithNotifyNbi
-        )
-    elseif(target_name MATCHES "roce")
-        set(test_filters
-            HcommRoCETestSuite.Init_ReadNbi_Drain
-            HcommRoCETestSuite.Init_WriteNbi_Drain
-            HcommRoCETestSuite.Init_WriteWithNotifyNbi
-        )
-    elseif(target_name MATCHES "urma")
-        set(test_filters
-            HcommUrmaTestSuite.Aiv_Urma_Read
-            HcommUrmaTestSuite.Aiv_Urma_Write
-            HcommUrmaTestSuite.Aiv_Urma_WriteReduce_MaxInt8
-            HcommUrmaTestSuite.Aiv_Urma_WriteReduce_MinHalf
-            HcommUrmaTestSuite.Aiv_Urma_WriteReduce_SumFloat
-            HcommUrmaTestSuite.Aiv_Urma_WriteWithNotify
-            HcommUrmaTestSuite.Aiv_Urma_WriteWithNotify_WqeBbCnt
-            HcommUrmaTestSuite.Aiv_Urma_RemoteBufferNotFound
-            HcommUrmaTestSuite.Aiv_Urma_BatchCommitDrain
-            HcommUrmaTestSuite.Aiv_Urma_InitLocalTensor
-            HcommUrmaTestSuite.Aiv_Urma_DumpHelpers_Nullptr
-            HcommUrmaTestSuite.Aiv_Urma_DumpHelpers_Valid
-            HcommUrmaTestSuite.Aiv_Urma_DumpAmoCtx_FAA
-            HcommUrmaTestSuite.Aiv_Urma_DumpAmoCtx_CAS
+            AinUrmaTestSuite.PutImmediateCommitsWrite
+            AinUrmaTestSuite.GetImmediateCommitsRead
+            AinUrmaTestSuite.DelayedPutFlushCommitsAndDrains
+            AinUrmaTestSuite.DelayedGetFlushCommitsAndDrains
+            AinUrmaTestSuite.DelayedOperationsFlushPeerChannel
+            AinUrmaTestSuite.ReadSignalReturnsValueFromPool
+            AinUrmaTestSuite.ReadSignalWithBitsMasksValue
+            AinUrmaTestSuite.SignalImmediateCommitsAtomicFAA
+            AinUrmaTestSuite.SignalWithSetValueCommitsAtomicFAA
+            AinUrmaTestSuite.SignalDelayedDoesNotRingDoorbell
+            AinUrmaTestSuite.SignalFlushCommitsAndDrains
+            AinUrmaTestSuite.WaitSignalSucceedsWhenValueUpdated
+            AinUrmaTestSuite.WaitSignalWithMaskBitsWhenValueUpdated
+            AinUrmaTestSuite.BarrierSessionSyncSignalsPeersAndWaits
+            AinUrmaTestSuite.BarrierSessionSyncWithTimeout
+            AinUrmaTestSuite.BarrierSessionSyncTimeoutExpired
         )
     endif()
 
@@ -108,25 +108,12 @@ function(add_hcomm_ut target_name product_type tikicpu_product_dir)
 endfunction()
 
 foreach(product_type ${PRODUCT_TYPE_LIST})
-    if(product_type STREQUAL "ascend910B1_AIC")
-        add_hcomm_ut(
-            asccomm_ut_hcomm_ascend910B1_AIC
-            ascend910B1_AIC
-            Ascend910B1
-            test_hcomm.cpp
-        )
-    elseif(product_type STREQUAL "ascend950pr_9599_AIV")
-        add_hcomm_ut(
-            asccomm_ut_hcomm_ascend950pr_9599_AIV_roce
+    if(product_type STREQUAL "ascend950pr_9599_AIV")
+        add_ain_ut(
+            asccomm_ut_ain_ascend950pr_9599_AIV_urma
             ascend950pr_9599_AIV
             Ascend950PR_9599
-            test_hcomm_roce_950.cpp
-        )
-        add_hcomm_ut(
-            asccomm_ut_hcomm_ascend950pr_9599_AIV_urma
-            ascend950pr_9599_AIV
-            Ascend950PR_9599
-            test_hcomm_urma_950.cpp
+            test_ain_urma_950.cpp
         )
     endif()
 endforeach()
