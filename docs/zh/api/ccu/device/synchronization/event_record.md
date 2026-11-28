@@ -66,6 +66,7 @@ ccu_result event_record(event e, uint16_t mask = 1);
 - 不可在硬件loop的循环体内调用，否则返回`ccu_result::CCU_E_NOT_SUPPORT`。循环体会被复制为多份并行执行，每份都会执行一次`event_record`，置位语义不再明确。
 - 置位后须有[event_wait](event_wait.md)消费该信号，否则该次置位不被使用。
 - `event_record`和`event_wait`的`mask`必须一致，否则`event_wait`永远等不到信号。
+- `mask`不可为`0x0`，且标志位仅限bit0~bit15：`0x0`不含任何标志位，不置位也不等待任何信号，属无效输入；需要占用的标志位超过16个时，须拆分到多个`event`上分别置位与等待。该约束须由调用方自行保证。
 
 ## 调用示例
 

@@ -65,6 +65,7 @@ ccu_result event_wait(event e, uint16_t mask = 1);
 - `event_wait`可在硬件loop的循环体内调用。
 - 调用本接口前，对应的标志位须已被置位。可以是[数据搬运接口](../data_movement/README.md)在搬运完成时自动置位，也可以是显式调用[event_record](event_record.md)置位；否则本接口将永久阻塞，导致硬件级死锁。
 - 本接口的`mask`须与生产侧传入的`mask`一致，否则永远等不到信号。
+- `mask`不可为`0x0`，且标志位仅限bit0~bit15：`0x0`不含任何标志位，不置位也不等待任何信号，属无效输入；需要占用的标志位超过16个时，须拆分到多个`event`上分别置位与等待。该约束须由调用方自行保证。
 
 ## 调用示例
 

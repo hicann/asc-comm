@@ -75,6 +75,7 @@
 - 同一kernel内所有[`ChannelHandle`](https://gitcode.com/cann/hcomm/blob/9.3.0/docs/zh/api_ref/comm_opdev/datatype_definition/ChannelHandle.md)须属于同一die，不同die的channel不可混入同一kernel。die一致性由`<<<>>>`统一校验，不一致时返回`ccu_result::CCU_E_PARA`，而非本接口的返回值。
 - “对端片上内存 -> 本端CCU Buffer”时，`len`不可超过`ccu_buffer`单片大小（4096字节）；该上限须由调用方自行保证，超出会导致执行期硬件行为未定义。
 - 本接口为异步操作，须通过`event_wait(evt, mask)`等待读取完成后再访问目标内存。
+- `mask`不可为`0x0`，且标志位仅限bit0~bit15：`0x0`不含任何标志位，不置位也不等待任何信号，属无效输入；需要占用的标志位超过16个时，须拆分到多个`event`上分别置位与等待。该约束须由调用方自行保证。
 
 ## 调用示例
 

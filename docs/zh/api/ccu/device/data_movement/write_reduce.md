@@ -75,6 +75,7 @@ ccu_result write_reduce(ChannelHandle ch, remote_addr remote, local_addr local,
 - 同一kernel内所有channel须属于同一die，该约束由`<<<>>>`统一校验，违反时返回`ccu_result::CCU_E_PARA`。
 - `data_type`仅支持`HCCL_DATA_TYPE_INT8`、`HCCL_DATA_TYPE_UINT8`、`HCCL_DATA_TYPE_INT16`、`HCCL_DATA_TYPE_UINT16`、`HCCL_DATA_TYPE_INT32`、`HCCL_DATA_TYPE_UINT32`、`HCCL_DATA_TYPE_FP16`、`HCCL_DATA_TYPE_BFP16`、`HCCL_DATA_TYPE_FP32`。
 - `op_type`仅支持`HCCL_REDUCE_SUM`、`HCCL_REDUCE_MAX`、`HCCL_REDUCE_MIN`。
+- `mask`不可为`0x0`，且标志位仅限bit0~bit15：`0x0`不含任何标志位，不置位也不等待任何信号，属无效输入；需要占用的标志位超过16个时，须拆分到多个`event`上分别置位与等待。该约束须由调用方自行保证。
 - `data_type`/`op_type`不在支持范围内时抛出异常（携带错误码），会被`<<<>>>`统一接住。
 - 本接口为异步操作，须通过`event_wait(evt, mask)`等待归约完成，方可保证对端数据可见。
 
