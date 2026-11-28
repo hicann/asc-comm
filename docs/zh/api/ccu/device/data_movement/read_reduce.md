@@ -68,6 +68,7 @@ ccu_result read_reduce(ChannelHandle ch, local_addr local, remote_addr remote,
 - 同一kernel内所有[`ChannelHandle`](https://gitcode.com/cann/hcomm/blob/master/docs/zh/api_ref/comm_opdev/datatype_definition/ChannelHandle.md)须属于同一die，不同die的channel不可混入同一kernel。die一致性由`<<<>>>`统一校验，不一致时返回`ccu_result::CCU_E_PARA`，而非本接口的返回值。
 - `local`在调用前须已写入有效初值（如0或负无穷），否则归约结果未定义。
 - 本接口为异步操作，须通过`event_wait(evt, mask)`等待归约完成后再读取结果。
+- `mask`不可为`0x0`，且标志位仅限bit0~bit15：`0x0`不含任何标志位，不置位也不等待任何信号，属无效输入；需要占用的标志位超过16个时，须拆分到多个`event`上分别置位与等待。该约束须由调用方自行保证。
 
 ## 调用示例
 
